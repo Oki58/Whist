@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isMember() {
+      return signedIn() && exists(/databases/$(database)/documents/members/$(request.auth.uid));
+    }
+    function secretAfter() {
+      return getAfter(/databases/$(database)/documents/config/secret).data.pin;
+    }
+
+    // Geheime PIN: niemand kann sie lesen; sie kann nur einmal angelegt werden.
+    match /config/secret {
+      allow read, update, delete: if false;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['pin'])
+        && request.resource.data.pin is string
+        && request.resource.data.pin.size() >= 4;
+    }
+    // Öffentlich sichtbar: ob schon eine PIN festgelegt wurde.
+    match /config/public {
+      allow read: if true;
+      allow create: if signedIn() && existsAfter(/databases/$(database)/documents/config/secret);
+      allow update, delete: if false;
+    }
+    // Freigeschaltete Geräte (anonyme Anmeldung). Nur mit richtiger PIN.
+    match /members/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.pin == secretAfter();
+      allow update, delete: if false;
+    }
+    // Archiv und laufende Spiele: alle lesen, nur Freigeschaltete schreiben.
+    match /games/{id} {
+      allow read: if true;
+      allow write: if isMember();
+    }
+    match /running/{id} {
+      allow read: if true;
+      allow write: if isMember();
+    }
+  }
+}

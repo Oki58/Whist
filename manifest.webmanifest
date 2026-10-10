@@ -1,0 +1,17 @@
+{
+  "name": "Whist Calculator",
+  "short_name": "Whist",
+  "description": "Spielstand-App für Whist mit 4–6 Spielern",
+  "lang": "de",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f3f4f1",
+  "theme_color": "#f3f4f1",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
